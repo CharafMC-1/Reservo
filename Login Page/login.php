@@ -19,8 +19,40 @@
       src="https://kit.fontawesome.com/e4580308de.js"
       crossorigin="anonymous"
     ></script>
-    <script src="login.js" defer></script>
     <link rel="icon" href="./images/favicon.png" type="image/x-icon" />
+    <script defer>
+      document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("loginForm");
+        const errorMessage = document.getElementById("errorMessage");
+
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const username = document.getElementById("username").value.trim();
+          const password = document.getElementById("password").value.trim();
+
+          const response = await fetch("../restapi/api.php?table=login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include", // Needed to maintain session
+            body: JSON.stringify({ username, password }),
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            // Store CSRF token for future use if needed
+            localStorage.setItem("csrf_token", result.csrf_token);
+            // Redirect to homepage
+            window.location.href = "http://localhost/ids%20Internship/Reservo/Home_Page/HomePage.php";
+          } else {
+            errorMessage.textContent = result.error || "Login failed";
+          }
+        });
+      });
+    </script>
   </head>
   <body>
     <div class="Components_Box">
@@ -29,24 +61,13 @@
       </div>
       <div class="container" id="container">
         <div class="form-container sign-in">
-          <form>
+          <form id="loginForm">
             <h1>Sign In</h1>
-            <div class="social-icons">
-              <a href="#" class="icon"><i class="fa-brands fa-google"></i></a>
-              <a href="#" class="icon"
-                ><i class="fa-brands fa-facebook-f"></i
-              ></a>
-              <a href="#" class="icon"><i class="fa-brands fa-github"></i></a>
-              <a href="#" class="icon"
-                ><i class="fa-brands fa-linkedin-in"></i
-              ></a>
-            </div>
-            <span>or use your email & password</span>
-            <input type="email" placeholder="Email" />
-            <input type="password" placeholder="Password" />
-            <a href="#">Forgot Your Password?</a>
-            <p class="error-message"></p>
-            <button>Sign In</button>
+            <span> use your username & password</span>
+            <input type="text" id="username" placeholder="Username" required />
+            <input type="password" id="password" placeholder="Password" required />
+            <p class="error-message" id="errorMessage"></p>
+            <button type="submit">Sign In</button>
           </form>
         </div>
         <div class="toggle-container">
