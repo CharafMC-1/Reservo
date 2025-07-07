@@ -27,8 +27,7 @@ if ($table === 'login' && $method === 'POST') {
     $password = $input['password'] ?? '';
 
     if (!$username || !$password) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Username and password are required']);
+
         exit;
     }
 
@@ -61,12 +60,6 @@ if ($table === 'logout' && $method === 'POST') {
     exit;
 }
 
-// ---------- AUTH CHECK ----------
-if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized']);
-    exit;
-}
 
 // ---------- CSRF PROTECTION ----------
 if (in_array($method, ['POST', 'PUT', 'DELETE'])) {

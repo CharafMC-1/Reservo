@@ -26,31 +26,41 @@
         const errorMessage = document.getElementById("errorMessage");
 
         form.addEventListener("submit", async (e) => {
-          e.preventDefault();
+    e.preventDefault();
+    errorMessage.textContent = ""; // Clear previous messages
 
-          const username = document.getElementById("username").value.trim();
-          const password = document.getElementById("password").value.trim();
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
 
-          const response = await fetch("../restapi/api.php?table=login", {
+    try {
+        const response = await fetch("../restapi/api.php?table=login", {
             method: "POST",
             headers: {
-              "Content-Type": "application/json",
+                "Content-Type": "application/json",
             },
-            credentials: "include", // Needed to maintain session
+            credentials: "include",
             body: JSON.stringify({ username, password }),
-          });
-
-          const result = await response.json();
-
-          if (response.ok) {
-            // Store CSRF token for future use if needed
-            localStorage.setItem("csrf_token", result.csrf_token);
-            // Redirect to homepage
-            window.location.href = "http://localhost/ids%20Internship/Reservo/Home_Page/HomePage.php";
-          } else {
-            errorMessage.textContent = result.error || "Login failed";
-          }
         });
+
+        // Check for response status
+        if (!response.ok) {
+            const errorText = `Error: ${response.status} ${response.statusText}`; // Capture error status and message
+            errorMessage.textContent = errorText; // Display the error
+            console.error(errorText); // Log the error in console
+            return; // Exit if there's an error
+        }
+
+        const result = await response.json();
+
+        // Successfully logged in
+        localStorage.setItem("csrf_token", result.csrf_token);
+        window.location.href = "http://localhost/ids%20Internship/Reservo/Home_Page/HomePage.php";
+    } catch (error) {
+        // Display any unexpected errors
+        errorMessage.textContent = `Unexpected error: ${error.message}`;
+        console.error("Error:", error);
+    }
+});
       });
     </script>
   </head>
