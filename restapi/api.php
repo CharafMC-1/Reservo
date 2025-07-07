@@ -15,19 +15,20 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-
 include 'db.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents('php://input'), true);
 $table = isset($_GET['table']) ? $_GET['table'] : '';
+
 // ---------- LOGIN HANDLING ----------
 if ($table === 'login' && $method === 'POST') {
     $username = $input['username'] ?? '';
     $password = $input['password'] ?? '';
 
     if (!$username || !$password) {
-
+        http_response_code(400);
+        echo json_encode(['error' => 'Username and password are required']);
         exit;
     }
 
@@ -59,7 +60,6 @@ if ($table === 'logout' && $method === 'POST') {
     echo json_encode(['message' => 'Logged out successfully']);
     exit;
 }
-
 
 // ---------- CSRF PROTECTION ----------
 if (in_array($method, ['POST', 'PUT', 'DELETE'])) {
@@ -147,11 +147,43 @@ function handlePut($pdo, $table, $input) {
         case 'attendance':
             break;
         case 'users':
-            if (isset($input['password'])) {
-                $input['password'] = password_hash($input['password'], PASSWORD_BCRYPT);
+            if (!isset($_SESSION['user_id'])) {
+                http_response_code(401);
+                echo json_encode(['error' => 'Unauthorized']);
+                return;
             }
-            $sql = "UPDATE users SET username = :username, password = :password, role = :role WHERE id = :id";
-            break;
+
+            $userId = $_SESSION['user_id'];
+
+            // Check current password
+            $stmt = $pdo->prepare("SELECT password FROM users WHERE id = :id");
+            $stmt->execute(['id' => $userId]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$user || !password_verify($input['currentPassword'], $user['password'])) {
+                echo json_encode(['error' => 'Current password incorrect']);
+                return;
+            }
+
+            $params = [
+                'username' => $input['username'],
+                'id' => $userId
+            ];
+
+            $sql = "UPDATE users SET username = :username";
+
+            if (!empty($input['password'])) {
+                $sql .= ", password = :password";
+                $params['password'] = password_hash($input['password'], PASSWORD_BCRYPT);
+            }
+
+            $sql .= " WHERE id = :id";
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            echo json_encode(['message' => 'Record updated successfully']);
+            return;
+
         default:
             echo json_encode(['message' => 'Invalid table']);
             return;
@@ -164,15 +196,12 @@ function handlePut($pdo, $table, $input) {
 
 function handleDelete($pdo, $table, $input) {
     if ($table === 'users' && isset($_SESSION['user_id']) && $_SESSION['user_id'] == $input['id']) {
-    echo json_encode(['error' => 'You cannot delete your own account while logged in']);
-    return;
+        echo json_encode(['error' => 'You cannot delete your own account while logged in']);
+        return;
+    } else {
+        $sql = "DELETE FROM " . $table . " WHERE id = :id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['id' => $input['id']]);
+        echo json_encode(['message' => 'Record deleted successfully']);
+    }
 }
-    else{
-    $sql = "DELETE FROM " . $table . " WHERE id = :id";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute(['id' => $input['id']]);
-    echo json_encode(['message' => 'Record deleted successfully']);
-}
-
-}
-?>
