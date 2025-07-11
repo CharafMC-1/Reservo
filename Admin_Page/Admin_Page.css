@@ -1,0 +1,21 @@
+#calendar {
+  width:88% !important;
+
+  height: 550px !important;
+}
+
+.fc {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+#Rooms_Management{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#Rooms_Btns {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}

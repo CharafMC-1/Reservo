@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Add/Edit Meeting Room</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <div class="container mt-4">
+      <h2 class="mb-4">Add a Meeting Room</h2>
+
+      <div id="alert-area"></div>
+
+      <form id="roomForm">
+        <div class="form-group">
+          <label for="roomName">Room Name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="roomName"
+            placeholder="Enter room name"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="capacity">Capacity</label>
+          <input
+            type="number"
+            class="form-control"
+            id="capacity"
+            placeholder="Enter number of people"
+            min="1"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Equipment</label>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="mic" />
+            <label class="form-check-label" for="mic">Microphone</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="projector" />
+            <label class="form-check-label" for="projector">Projector</label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Room</button>
+      </form>
+    </div>
+
+    <script>
+      document
+        .getElementById("roomForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const name = document.getElementById("roomName").value.trim();
+          const capacity = document.getElementById("capacity").value;
+          const mic = document.getElementById("mic").checked;
+          const projector = document.getElementById("projector").checked;
+
+          if (!name || capacity < 1) {
+            showAlert(
+              "Please fill out all required fields correctly.",
+              "danger"
+            );
+            return;
+          }
+
+          const roomData = {
+            name,
+            capacity,
+            equipment: {
+              mic,
+              projector,
+            },
+          };
+
+          // Example usage: console.log or send to API
+          console.log("Room Data:", roomData);
+
+          // Show success message
+          showAlert("Room saved successfully!", "success");
+
+          // Reset form (optional)
+          document.getElementById("roomForm").reset();
+        });
+
+      function showAlert(message, type) {
+        const alertArea = document.getElementById("alert-area");
+        alertArea.innerHTML = `
+      <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+        ${message}
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+      </div>
+    `;
+      }
+    </script>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
